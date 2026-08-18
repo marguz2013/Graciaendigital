@@ -63,10 +63,9 @@ export default async (req) => {
         email: correo,
         firstName: nombre,
         locale: 'es',
-        // Si más adelante quieres etiquetar automáticamente a quienes
-        // llegan por esta app (por ejemplo con un tag "promesa-app"),
-        // agrégalo aquí una vez tengas el ID del tag en Systeme.io:
-        // tags: [ID_DEL_TAG]
+        // Tag "promesa-app": dispara la regla de automatización que envía
+        // el PDF de las 7 Promesas + el separador por correo.
+        tags: [2133269],
       }),
     });
 
