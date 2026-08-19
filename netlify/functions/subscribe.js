@@ -69,16 +69,17 @@ export default async (req) => {
       }),
     });
 
-    // Systeme.io responde 422 si el contacto ya existe con ese correo;
-    // en ese caso lo tratamos como éxito (la persona ya está en la lista).
-    if (!systemeResponse.ok && systemeResponse.status !== 422) {
-      const detalle = await systemeResponse.text();
-      console.error('Error de Systeme.io:', systemeResponse.status, detalle);
-      return new Response(JSON.stringify({ error: 'No se pudo registrar el contacto' }), {
-        status: 502,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    const systemeResponseText = await systemeResponse.text();
+
+    if (!systemeResponse.ok) {
+      console.error('Error de Systeme.io:', systemeResponse.status, systemeResponseText);
+      return new Response(
+        JSON.stringify({ error: 'No se pudo registrar el contacto', detalle: systemeResponseText }),
+        { status: 502, headers: { 'Content-Type': 'application/json' } }
+      );
     }
+
+    console.log('Contacto creado en Systeme.io:', systemeResponseText);
 
     return new Response(JSON.stringify({ ok: true }), {
       status: 200,
