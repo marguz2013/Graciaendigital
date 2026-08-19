@@ -63,33 +63,10 @@ export default async (req) => {
         email: correo,
         firstName: nombre,
         locale: 'es',
-        // Tag "promesa-app": dispara la regla de automatización que envía
-        // el PDF de las 7 Promesas + el separador por correo.
-        tags: [2133269],
       }),
     });
 
     const systemeResponseText = await systemeResponse.text();
 
     if (!systemeResponse.ok) {
-      console.error('Error de Systeme.io:', systemeResponse.status, systemeResponseText);
-      return new Response(
-        JSON.stringify({ error: 'No se pudo registrar el contacto', detalle: systemeResponseText }),
-        { status: 502, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Contacto creado en Systeme.io:', systemeResponseText);
-
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  } catch (err) {
-    console.error('Error llamando a Systeme.io:', err);
-    return new Response(JSON.stringify({ error: 'Error de conexión con Systeme.io' }), {
-      status: 502,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-};
+      console.error('Error de Systeme.io:', systemeResponse.status,
