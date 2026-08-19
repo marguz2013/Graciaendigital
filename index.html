@@ -436,6 +436,7 @@
         </div>
         <h1 class="serif-title">Tu recurso está en camino.</h1>
         <p class="body-text">Revisa tu correo en unos minutos. Y si algún día vuelves a sentirte así, regresa a este espacio: aquí estará esperándote una palabra para ti.</p>
+        <p class="microcopy">Si no lo ves en unos minutos, revisa también tu carpeta de spam o correo no deseado.</p>
       </div>
     </div>
 
@@ -546,7 +547,19 @@ const promesas = [
 ];
 
 let currentPromise = null;
-const savedPromises = []; // colección personal en memoria (sesión actual)
+const SAVED_PROMISES_KEY = 'gracia-en-digital:promesas-guardadas';
+
+function loadSavedPromises(){
+  try{
+    const raw = localStorage.getItem(SAVED_PROMISES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(err){
+    console.error('No se pudieron leer las promesas guardadas:', err);
+    return [];
+  }
+}
+
+const savedPromises = loadSavedPromises(); // persiste en este dispositivo/navegador
 
 function goTo(screenId){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -583,7 +596,16 @@ function showReflection(){
 
 function savePromise(){
   if(currentPromise){
-    savedPromises.push(currentPromise);
+    // Evita guardar la misma promesa dos veces si ya estaba guardada antes
+    const yaGuardada = savedPromises.some(p => p.referencia === currentPromise.referencia);
+    if(!yaGuardada){
+      savedPromises.push(currentPromise);
+      try{
+        localStorage.setItem(SAVED_PROMISES_KEY, JSON.stringify(savedPromises));
+      }catch(err){
+        console.error('No se pudo guardar la promesa en este dispositivo:', err);
+      }
+    }
     document.getElementById('saved-verse').textContent = '“' + currentPromise.versiculo + '”';
     document.getElementById('saved-ref').textContent = currentPromise.referencia;
   }
