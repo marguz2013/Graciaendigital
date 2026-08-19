@@ -67,12 +67,28 @@ export default async (req) => {
 
     const systemeResponseText = await systemeResponse.text();
 
-    if (!systemeResponse.ok) {
+    // Si el correo ya existe, Systeme.io responde 422 con este mensaje
+    // específico. Para la persona esto NO es un error real (ya está en
+    // nuestra lista), así que lo tratamos como éxito en vez de mostrarle
+    // una alerta de "algo salió mal".
+    const esCorreoDuplicado =
+      systemeResponse.status === 422 &&
+      /ya se ha utilizado/i.test(systemeResponseText);
+
+    if (!systemeResponse.ok && !esCorreoDuplicado) {
       console.error('Error de Systeme.io:', systemeResponse.status, systemeResponseText);
       return new Response(
         JSON.stringify({ error: 'No se pudo registrar el contacto', detalle: systemeResponseText }),
         { status: 502, headers: { 'Content-Type': 'application/json' } }
       );
+    }
+
+    if (esCorreoDuplicado) {
+      console.log('Correo ya registrado previamente, se trata como éxito:', correo);
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     console.log('Contacto creado en Systeme.io:', systemeResponseText);
