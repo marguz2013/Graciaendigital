@@ -513,7 +513,8 @@
       <p class="body-text" style="font-size:13.5px;">Recibe gratis "7 promesas de fe" + Un Separador + 3 diseños de versículos. Puedes imprimir estos materiales y usarlos para decorar tus apuntes o tu Biblia.</p>
       <div class="form-field"><input type="text" id="input-nombre" placeholder="Tu nombre" /></div>
       <div class="form-field"><input type="email" id="input-correo" placeholder="Tu correo electrónico" /></div>
-      <button class="btn btn-primary btn-cta" onclick="submitEmail()">Quiero recibir las promesas</button>
+      <button class="btn btn-primary btn-cta" id="submit-email-btn" onclick="submitEmail()">Quiero recibir las promesas</button>
+      <p class="microcopy" id="email-error" style="display:none; color:#B85C6B; margin-top:10px;">No pudimos enviar tus datos justo ahora. Intenta de nuevo en un momento.</p>
     </div>
 
     <!-- ===================== CONFIRMATION ===================== -->
@@ -525,6 +526,7 @@
         </div>
         <h1 class="serif-title">Tu recurso está en camino.</h1>
         <p class="body-text">Revisa tu correo en unos minutos. Y si algún día vuelves a sentirte así, regresa a este espacio: aquí estará esperándote una palabra para ti.</p>
+        <p class="microcopy" style="margin-top:-8px; margin-bottom:22px;">Si no lo ves en tu bandeja principal, revisa también la carpeta de promociones o spam.</p>
       </div>
     </div>
 
@@ -742,13 +744,42 @@ function savePromise(){
   goTo('saved');
 }
 
-function submitEmail(){
-  const nombre = document.getElementById('input-nombre').value.trim();
-  const correo = document.getElementById('input-correo').value.trim();
+async function submitEmail(){
+  const nombreInput = document.getElementById('input-nombre');
+  const correoInput = document.getElementById('input-correo');
+  const nombre = nombreInput.value.trim();
+  const correo = correoInput.value.trim();
+  const btn = document.getElementById('submit-email-btn');
+  const errorMsg = document.getElementById('email-error');
+
+  errorMsg.style.display = 'none';
+
   if(!nombre || !correo){
-    return; // en producción: validar y mostrar mensaje cálido, sin regañar
+    return; // validación mínima; sin regañar a la usuaria
   }
-  goTo('confirmation');
+
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  try{
+    const response = await fetch('/.netlify/functions/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, correo })
+    });
+
+    if(response.ok){
+      goTo('confirmation');
+    }else{
+      errorMsg.style.display = '';
+    }
+  }catch(err){
+    errorMsg.style.display = '';
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
 }
 
 // pinta la colección completa de promesas guardadas (localStorage)
